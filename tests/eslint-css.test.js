@@ -53,6 +53,17 @@ describe("ESLint CSS plugin compatibility", () => {
 		);
 	});
 
+	it("should parse interpolation in a var() custom property name", () => {
+		assert.strictEqual(
+			generate(
+				parse(
+					".a { border-color: var(--#{$prefix}form-invalid-border-color); }",
+				),
+			),
+			".a{border-color:var(--#{$prefix}form-invalid-border-color)}",
+		);
+	});
+
 	it("should still parse a CSS @import", () => {
 		assert.strictEqual(
 			generate(parse('@import url("a.css") layer(base) screen;')),

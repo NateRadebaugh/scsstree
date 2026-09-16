@@ -324,6 +324,15 @@ describe("SCSS", () => {
 				".a{width:calc(100% - #{$gutter})}",
 			);
 		});
+
+		it("should parse interpolation in a var() custom property name", () => {
+			assert.strictEqual(
+				roundTrip(
+					".a { border-color: var(--#{$prefix}form-invalid-border-color); }",
+				),
+				".a{border-color:var(--#{$prefix}form-invalid-border-color)}",
+			);
+		});
 	});
 
 	describe("Selectors", () => {

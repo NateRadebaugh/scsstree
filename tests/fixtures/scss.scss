@@ -123,6 +123,7 @@ $breakpoints: (
 
 .optional {
 	@extend .missing !optional;
+	border-color: var(--#{$prefix}form-invalid-border-color);
 }
 
 // Plain CSS still works
@@ -136,4 +137,5 @@ $breakpoints: (
 
 :root {
 	--custom-property: 1px;
+	--#{$prefix}form-invalid-border-color: red;
 }
