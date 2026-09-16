@@ -189,7 +189,11 @@ function readVarFunction() {
 			: this.Raw(this.consumeUntilExclamationMarkOrSemicolon, false);
 
 		if (value.type === "Value" && value.children.isEmpty) {
-			for (let offset = startIndex - this.tokenIndex; offset <= 0; offset++) {
+			for (
+				let offset = startIndex - this.tokenIndex;
+				offset <= 0;
+				offset++
+			) {
 				if (this.lookupType(offset) === tokenTypes.WhiteSpace) {
 					value.children.appendData({
 						type: "WhiteSpace",
