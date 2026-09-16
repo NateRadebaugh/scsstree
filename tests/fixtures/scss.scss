@@ -136,4 +136,5 @@ $breakpoints: (
 
 :root {
 	--custom-property: 1px;
+	--#{$prefix}form-invalid-border-color: red;
 }

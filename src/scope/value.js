@@ -35,6 +35,7 @@ import {
 import {
 	isInterpolationStart,
 	isNamespacedFunctionStart,
+	skipInterpolation,
 	isVariableStart,
 } from "../util/parser.js";
 
@@ -140,6 +141,74 @@ function readNamespacedFunction(context) {
 		name: `${namespace}.${fn.name}`,
 		children: fn.children,
 	};
+}
+
+/**
+ * Reads an identifier-like token sequence that may include interpolation, such
+ * as `--#{$prefix}form-invalid-border-color`.
+ * @this {any}
+ * @returns {any} The `Identifier` node.
+ */
+function readInterpolatedIdentifier() {
+	const start = this.tokenStart;
+
+	do {
+		if (isInterpolationStart(this)) {
+			skipInterpolation(this);
+		} else {
+			this.eat(tokenTypes.Ident);
+		}
+	} while (this.tokenType === tokenTypes.Ident || isInterpolationStart(this));
+
+	return {
+		type: "Identifier",
+		loc: this.getLocation(start, this.tokenStart),
+		name: this.substrToCursor(start),
+	};
+}
+
+/**
+ * Parses `var()` arguments, allowing the custom property name to contain
+ * interpolation.
+ * @this {any}
+ * @returns {any} The child nodes for the `var()` function.
+ */
+function readVarFunction() {
+	const children = this.createList();
+
+	this.skipSC();
+	children.push(readInterpolatedIdentifier.call(this));
+	this.skipSC();
+
+	if (this.tokenType === tokenTypes.Comma) {
+		children.push(this.Operator());
+
+		const startIndex = this.tokenIndex;
+		const value = this.parseCustomProperty
+			? this.Value(null)
+			: this.Raw(this.consumeUntilExclamationMarkOrSemicolon, false);
+
+		if (value.type === "Value" && value.children.isEmpty) {
+			for (
+				let offset = startIndex - this.tokenIndex;
+				offset <= 0;
+				offset++
+			) {
+				if (this.lookupType(offset) === tokenTypes.WhiteSpace) {
+					value.children.appendData({
+						type: "WhiteSpace",
+						loc: null,
+						value: " ",
+					});
+					break;
+				}
+			}
+		}
+
+		children.push(value);
+	}
+
+	return children;
 }
 
 /**
@@ -304,5 +373,6 @@ export function createValueScope(previous) {
 		...previous,
 		getNode,
 		onWhiteSpace,
+		var: readVarFunction,
 	};
 }
