@@ -68,6 +68,10 @@ describe("ESLint CSS plugin compatibility", () => {
 		["@media (min-width: $w)", "@media (min-width:$w)"],
 		["@supports (display: grid)", "@supports (display:grid)"],
 		["@container (min-width: 10px)", "@container (min-width:10px)"],
+		[
+			"@supports ((display: grid) or (display: flex))",
+			"@supports ((display:grid) or (display:flex))",
+		],
 	]) {
 		it(`should preserve nested rules in ${condition} with definition data only`, () => {
 			const code = `.parent { ${condition} { color: blue; .child { color: red; } } }`;

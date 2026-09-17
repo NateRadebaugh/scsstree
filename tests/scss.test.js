@@ -688,6 +688,23 @@ describe("SCSS", () => {
 		}
 	});
 
+	it("should parse grouped supports declarations as a nested condition", () => {
+		const code =
+			"@supports ((display: grid) or (display: flex)) { .a { color: red; } }";
+		const condition = findNode(code, "Condition");
+
+		assert.strictEqual(condition.kind, "supports");
+		assert.strictEqual(condition.children[0].type, "Condition");
+		assert.deepStrictEqual(
+			condition.children[0].children.map(child => child.type),
+			["SupportsDeclaration", "Identifier", "SupportsDeclaration"],
+		);
+		assert.strictEqual(
+			roundTrip(code),
+			"@supports ((display:grid) or (display:flex)){.a{color:red}}",
+		);
+	});
+
 	describe("Lexer", () => {
 		/**
 		 * Matches the first declaration in the source text.

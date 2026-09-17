@@ -53,6 +53,10 @@ const parentheses = {
 
 	/** @this {any} */
 	supports() {
+		if (this.lookupTypeNonSC(1) === tokenTypes.LeftParenthesis) {
+			return null;
+		}
+
 		return this.SupportsDeclaration();
 	},
 };
