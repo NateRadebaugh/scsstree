@@ -72,6 +72,7 @@ describe("ESLint CSS plugin compatibility", () => {
 			"@supports ((display: grid) or (display: flex))",
 			"@supports ((display:grid) or (display:flex))",
 		],
+		["@container style(--theme: dark)", "@container style(--theme:dark)"],
 	]) {
 		it(`should preserve nested rules in ${condition} with definition data only`, () => {
 			const code = `.parent { ${condition} { color: blue; .child { color: red; } } }`;

@@ -76,6 +76,7 @@ export const structure = {
 			"Feature",
 			"FeatureFunction",
 			"FeatureRange",
+			"GeneralEnclosed",
 			"SupportsDeclaration",
 			"ScssVariable",
 			"ScssInterpolation",
@@ -146,6 +147,11 @@ export function parse(kind = "media") {
 			}
 
 			case tokenTypes.Function: {
+				if (kind === "container") {
+					children.push(this.GeneralEnclosed(kind));
+					break;
+				}
+
 				let term = this.parseWithFallback(
 					() => this.FeatureFunction(kind),
 					() => null,

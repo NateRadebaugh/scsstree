@@ -705,6 +705,18 @@ describe("SCSS", () => {
 		);
 	});
 
+	for (const query of ["style(--theme: dark)", "scroll-state(stuck: top)"]) {
+		it(`should parse container ${query} as general-enclosed`, () => {
+			const code = `@container ${query} { .a { color: red; } }`;
+			const condition = findNode(code, "Condition");
+
+			assert.strictEqual(condition.kind, "container");
+			assert.strictEqual(condition.children[0].type, "GeneralEnclosed");
+			assert.strictEqual(lexer.checkStructure(strictParse(code)), false);
+			roundTrip(code);
+		});
+	}
+
 	describe("Lexer", () => {
 		/**
 		 * Matches the first declaration in the source text.
