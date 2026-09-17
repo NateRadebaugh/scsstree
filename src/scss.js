@@ -72,6 +72,21 @@ const blockAtruleNames = [
 ];
 
 /**
+ * Parses a CSS conditional block while allowing nested rules in a style block.
+ * @this {any}
+ * @param {boolean} isDeclaration Whether the block is inside a style rule.
+ * @param {{allowNestedRules?: boolean}} [options] Block parsing options.
+ * @returns {any} The parsed block.
+ */
+function scssConditionalBlock(isDeclaration, options = {}) {
+	const { allowNestedRules = false } = options;
+
+	return this.Block(isDeclaration, {
+		allowNestedRules: isDeclaration || allowNestedRules,
+	});
+}
+
+/**
  * The selector parts that SCSS adds to the CSS ones.
  * @type {Array<string>}
  */
@@ -107,6 +122,16 @@ export const scss = prev => {
 			parse: {
 				...previous.atrule?.[atruleName]?.parse,
 				block: scssBlock,
+			},
+		};
+	}
+
+	for (const atruleName of ["container", "media", "supports"]) {
+		atrule[atruleName] = {
+			...previous.atrule?.[atruleName],
+			parse: {
+				...previous.atrule?.[atruleName]?.parse,
+				block: scssConditionalBlock,
 			},
 		};
 	}

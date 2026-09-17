@@ -651,6 +651,43 @@ describe("SCSS", () => {
 		}
 	});
 
+	describe("Conditional rules", () => {
+		const conditions = [
+			["media", "(min-width: $width)"],
+			["supports", "(display: grid)"],
+			["container", "(min-width: 10px)"],
+		];
+
+		for (const [name, condition] of conditions) {
+			for (const nested of [false, true]) {
+				it(`should parse nested rules in @${name} ${nested ? "inside a style rule" : "at the top level"}`, () => {
+					const rule = `@${name} ${condition} { .child { color: red; } }`;
+					const code = nested ? `.parent { ${rule} }` : rule;
+					const atrule = findNode(code, "Atrule");
+
+					assert.strictEqual(atrule.block.children[0].type, "Rule");
+					assert.strictEqual(
+						atrule.block.children[0].prelude.children[0].children[0]
+							.name,
+						"child",
+					);
+					roundTrip(code);
+				});
+			}
+
+			it(`should allow declarations alongside nested rules in @${name}`, () => {
+				const code = `.parent { @${name} ${condition} { color: blue; &:hover { color: red; } background: white; } }`;
+				const atrule = findNode(code, "Atrule");
+
+				assert.deepStrictEqual(
+					atrule.block.children.map(child => child.type),
+					["Declaration", "Rule", "Declaration"],
+				);
+				roundTrip(code);
+			});
+		}
+	});
+
 	describe("Lexer", () => {
 		/**
 		 * Matches the first declaration in the source text.

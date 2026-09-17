@@ -64,6 +64,34 @@ describe("ESLint CSS plugin compatibility", () => {
 		);
 	});
 
+	for (const [condition, expected] of [
+		["@media (min-width: $w)", "@media (min-width:$w)"],
+		["@supports (display: grid)", "@supports (display:grid)"],
+		["@container (min-width: 10px)", "@container (min-width:10px)"],
+	]) {
+		it(`should preserve nested rules in ${condition} with definition data only`, () => {
+			const code = `.parent { ${condition} { color: blue; .child { color: red; } } }`;
+			const options = {
+				onParseError(error) {
+					throw error;
+				},
+			};
+			const ast = parse(code, options);
+			const output = generate(ast);
+
+			assert.strictEqual(
+				output,
+				`.parent{${expected}{color:blue;.child{color:red}}}`,
+			);
+			assert.strictEqual(generate(parse(output, options)), output);
+			assert.strictEqual(
+				ast.children.first.block.children.first.block.children.last
+					.type,
+				"Rule",
+			);
+		});
+	}
+
 	it("should still parse a CSS @import", () => {
 		assert.strictEqual(
 			generate(parse('@import url("a.css") layer(base) screen;')),
