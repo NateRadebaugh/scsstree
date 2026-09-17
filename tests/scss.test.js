@@ -360,6 +360,22 @@ describe("SCSS", () => {
 	});
 
 	describe("Selectors", () => {
+		for (const selector of [
+			".#{$prefix}-#{$name}",
+			".icon-#{$name}-",
+			".-#{$name}",
+		]) {
+			it(`should preserve hyphens in ${selector}`, () => {
+				const code = `${selector} { color: red; }`;
+
+				assert.strictEqual(
+					findNode(code, "ClassSelector").name,
+					selector.slice(1),
+				);
+				assert.strictEqual(roundTrip(code), `${selector}{color:red}`);
+			});
+		}
+
 		it("should parse a placeholder selector", () => {
 			assert.deepStrictEqual(
 				findNode("%button { border: 0; }", "ScssPlaceholderSelector"),
