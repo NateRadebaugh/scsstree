@@ -84,41 +84,42 @@ export function createScssTokenizer(baseTokenize) {
 
 			/*
 			 * Everything from `//` up to (but not including) the next newline is
-			 * part of the comment. The newline always lives inside a whitespace
-			 * token, so find the first whitespace token containing one and split
-			 * it at that point.
+			 * part of the comment. Use the source directly because an unmatched
+			 * quote in a comment can make the base tokenizer emit a BadString token
+			 * that contains the newline.
 			 */
 			const commentStart = starts[i];
-			let commentEnd = source.length;
+			let commentEnd = commentStart + 2;
+
+			while (
+				commentEnd < source.length &&
+				!isNewline(source.charCodeAt(commentEnd))
+			) {
+				commentEnd++;
+			}
+
 			let index = i + 2;
 
-			for (; index < types.length; index++) {
-				if (types[index] !== tokenTypes.WhiteSpace) {
-					continue;
-				}
-
-				let offset = starts[index];
-
-				while (
-					offset < ends[index] &&
-					!isNewline(source.charCodeAt(offset))
-				) {
-					offset++;
-				}
-
-				if (offset < ends[index]) {
-					commentEnd = offset;
-					break;
-				}
+			while (index < types.length && starts[index] < commentEnd) {
+				index++;
 			}
 
 			onToken(tokenTypes.Comment, commentStart, commentEnd);
 
-			if (index < types.length) {
+			if (
+				index < types.length &&
+				starts[index] === commentEnd &&
+				types[index] === tokenTypes.WhiteSpace
+			) {
 				onToken(tokenTypes.WhiteSpace, commentEnd, ends[index]);
-			}
+				i = index;
+			} else {
+				if (index < types.length && starts[index] > commentEnd) {
+					onToken(tokenTypes.WhiteSpace, commentEnd, starts[index]);
+				}
 
-			i = index;
+				i = index - 1;
+			}
 		}
 	};
 }

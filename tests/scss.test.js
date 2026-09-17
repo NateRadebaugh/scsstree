@@ -103,6 +103,30 @@ describe("SCSS", () => {
 	});
 
 	describe("Comments", () => {
+		for (const newline of ["\n", "\r\n", "\r", "\f"]) {
+			for (const quote of ['"', "'"]) {
+				it(`should end a comment containing ${quote} at ${JSON.stringify(newline)}`, () => {
+					const comment = ` unmatched ${quote} quote`;
+					const code = `//${comment}${newline}.a { color: red; }`;
+					const comments = [];
+					const ast = strictParse(code, {
+						positions: true,
+						onComment(value) {
+							comments.push(value);
+						},
+					});
+
+					assert.deepStrictEqual(comments, [comment]);
+					assert.strictEqual(ast.children.first.type, "Rule");
+					assert.strictEqual(
+						ast.children.first.loc.start.offset,
+						code.indexOf(".a"),
+					);
+					assert.strictEqual(roundTrip(code), ".a{color:red}");
+				});
+			}
+		}
+
 		it("should treat // as a comment through the end of the line", () => {
 			assert.strictEqual(
 				roundTrip("// comment\n.a { color: red; }"),
