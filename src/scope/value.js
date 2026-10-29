@@ -35,7 +35,6 @@ import {
 import {
 	isInterpolationStart,
 	isNamespacedFunctionStart,
-	skipInterpolation,
 	isVariableStart,
 } from "../util/parser.js";
 
@@ -57,6 +56,11 @@ const comparisonStarts = new Set([
 	GREATER_THAN_SIGN,
 	EXCLAMATION_MARK,
 ]);
+
+// Numeric tokens can contain identifier characters, but also punctuation that
+// must be escaped in a name. Hex escapes may include a terminating whitespace.
+const identifierFragment =
+	/^(?:[-\w\u0080-\u{10ffff}]|\\(?:[a-fA-F0-9]{1,6}(?:\r\n|[ \t\n\r\f])?|[^\n\r\f]))+$/u;
 
 /**
  * Reads a fixed number of adjacent tokens as a single `Operator` node.
@@ -152,13 +156,30 @@ function readNamespacedFunction(context) {
 function readInterpolatedIdentifier() {
 	const start = this.tokenStart;
 
+	if (this.tokenType !== tokenTypes.Ident && !isInterpolationStart(this)) {
+		this.error("Identifier is expected");
+	}
+
 	do {
 		if (isInterpolationStart(this)) {
-			skipInterpolation(this);
+			if (this.getBlockTokenPairIndex(this.tokenIndex + 1) === -1) {
+				this.error("Unterminated interpolation");
+			}
+
+			this.ScssInterpolation();
 		} else {
-			this.eat(tokenTypes.Ident);
+			this.next();
 		}
-	} while (this.tokenType === tokenTypes.Ident || isInterpolationStart(this));
+	} while (
+		this.tokenType === tokenTypes.Ident ||
+		isInterpolationStart(this) ||
+		((this.tokenType === tokenTypes.Number ||
+			this.tokenType === tokenTypes.Dimension ||
+			this.isDelim(HYPHEN_MINUS)) &&
+			identifierFragment.test(
+				this.substring(this.tokenStart, this.tokenEnd),
+			))
+	);
 
 	return {
 		type: "Identifier",
