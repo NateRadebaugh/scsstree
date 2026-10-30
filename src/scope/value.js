@@ -57,7 +57,8 @@ const comparisonStarts = new Set([
 	EXCLAMATION_MARK,
 ]);
 
-// Numeric tokens can contain identifier characters, but also punctuation that
+// Validates Number, Dimension, and `-` tokens that continue an interpolated
+// name. Those tokens can contain name characters, but also punctuation that
 // must be escaped in a name. Hex escapes may include a terminating whitespace.
 const identifierFragment =
 	/^(?:[-\w\u0080-\u{10ffff}]|\\(?:[a-fA-F0-9]{1,6}(?:\r\n|[ \t\n\r\f])?|[^\n\r\f]))+$/u;
@@ -156,7 +157,16 @@ function readNamespacedFunction(context) {
 function readInterpolatedIdentifier() {
 	const start = this.tokenStart;
 
-	if (this.tokenType !== tokenTypes.Ident && !isInterpolationStart(this)) {
+	const startsWithHyphenInterpolation =
+		this.isDelim(HYPHEN_MINUS) &&
+		isInterpolationStart(this, 1) &&
+		this.getTokenStart(this.tokenIndex + 1) === this.tokenEnd;
+
+	if (
+		this.tokenType !== tokenTypes.Ident &&
+		!isInterpolationStart(this) &&
+		!startsWithHyphenInterpolation
+	) {
 		this.error("Identifier is expected");
 	}
 

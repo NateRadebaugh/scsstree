@@ -78,6 +78,8 @@ describe("ESLint CSS plugin compatibility", () => {
 		"--#{$prefix}-",
 		"--#{$prefix}2e-3",
 		"--#{$prefix}2\\32 color",
+		'-#{"-theme-color"}',
+		"-#{$name}-color",
 	];
 
 	for (const name of names) {
@@ -110,6 +112,8 @@ describe("ESLint CSS plugin compatibility", () => {
 		"var(--#{$prefix}/**/color)",
 		"var(--#{foo)})",
 		"var(--#{$prefix)",
+		"var(- #{$name})",
+		"var(-/**/#{$name})",
 	]) {
 		it(`should report invalid var() syntax: ${value}`, () => {
 			assert.throws(() => strictParse(`.a { color: ${value}; }`));
