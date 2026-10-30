@@ -349,6 +349,9 @@ describe("SCSS", () => {
 			"--#{$prefix}1E-2px",
 			"--#{$prefix}#{$name}",
 			"#{$name}",
+			'-#{"-theme-color"}',
+			"-#{$name}-color",
+			"-#{$a}#{$b}",
 			'--#{"a b"}color',
 			"--#{map.get($map, name)}-2",
 			"--#{$prefix}2\\.x",
@@ -408,6 +411,11 @@ describe("SCSS", () => {
 			"var(--#{$prefix)",
 			"var()",
 			"var(2)",
+			"var(-)",
+			"var(-2)",
+			"var(- #{$name})",
+			"var(-/**/#{$name})",
+			"var(-#{$name)",
 			"var(--foo --bar)",
 		];
 
